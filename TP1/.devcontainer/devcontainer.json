@@ -10,7 +10,7 @@
 		"mhutchie.git-graph"
 	],
 	"mounts": [
-		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind"
+		//"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind"
 	],
 	"remoteUser": "vscode"
 }
