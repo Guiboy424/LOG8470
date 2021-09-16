@@ -1,102 +1,86 @@
-mtype:MenuComm = { CheckedMenu, AskMenu}
-mtype:OrderingComm = {PreparingOrder, PreparingDeliveryOrder, OrderFood, OrderFoodDelivery}
-mtype:CreditComm = {FoodPaid, DeliveryFoodPaid, PayFood, PayFoodDelivery}
+mtype:MenuComm = {CheckedMenu, AskMenu}
+mtype:OrderComm = {PreparingOrder, OrderFood}
+mtype:CreditComm = {FoodPaid, PayFood}
 mtype:DeliveryComm = {ChooseDeliveryOrder, AskDelivery}
 
 proctype MenuService(chan menuIn; chan menuOut){
     do
     :: mtype:MenuComm menuInput
         menuIn?menuInput
-        printf("j'ai recu comme message: %e \n", menuInput)
+        printf("j'ai recu comme message: %e\n", menuInput)
         menuOut!CheckedMenu
     od
 }
 proctype OrderFoodService(chan orderIn; chan orderOut){
     do
-    ::mtype:OrderingComm orderInput
+    ::mtype:OrderComm orderInput
         orderIn?orderInput
-        printf("Commande de type: %e \n", orderInput)
-        if
-        :: orderInput == OrderFood -> orderOut!PreparingOrder
-        :: orderInput == OrderFoodDelivery -> orderOut!PreparingDeliveryOrder
-        fi
+        printf("Commande de type: %e\n", orderInput)
+        orderOut!PreparingOrder
     od
 }
 proctype SchoolCreditCardAccountService(chan creditIn; chan creditOut){
     do
     ::mtype:CreditComm creditInput
         creditIn?creditInput
-        printf("Mode de paiement de type: %e \n", creditInput)
-        if
-        :: creditInput == PayFood -> creditOut!FoodPaid
-        :: creditInput == PayFoodDelivery -> creditOut!DeliveryFoodPaid
-        fi
+        printf("Mode de paiement de type: %e\n", creditInput)
+        creditOut!FoodPaid
     od
 }
 proctype DeliveryService(chan deliveryIn; chan deliveryOut){
     do
     :: mtype:DeliveryComm deliveryInput
         deliveryIn?deliveryInput
-        printf("Demande de livraison: %e \n", deliveryInput)
+        printf("Demande de livraison: %e\n", deliveryInput)
         deliveryOut!ChooseDeliveryOrder
     od
 }
 init{
-    // // Menu section
-    // chan menuIn = [0] of {mtype:MenuComm}
-    // chan menuOut = [0] of {mtype:MenuComm}
+    // Creating channels
+    chan menuRequestChan = [15] of {mtype:MenuComm}
+    chan menuResponseChan = [15] of {mtype:MenuComm}
+    chan orderRequestChan = [15] of {mtype:OrderComm}
+    chan orderResponseChan = [15] of {mtype:OrderComm}
+    chan creditRequestChan = [15] of {mtype:CreditComm}
+    chan creditResponseChan = [15] of {mtype:CreditComm}
+    chan deliveryRequestChan = [15] of {mtype:DeliveryComm}
+    chan deliveryResponseChan = [15] of {mtype:DeliveryComm}
 
-    // run MenuService(menuInt, menuOut)
+    mtype ClientRequests[8] = {AskMenu, OrderFood, PayFood, AskDelivery, OrderFood, AskMenu, AskDelivery, PayFood}
+    int requestCounter = 0
+    mtype:MenuComm menuResponse
+    mtype:OrderComm orderResponse
+    mtype:CreditComm creditResponse
+    mtype:DeliveryComm deliveryResponse
+    mtype currentClientRequest
 
-    // do
-    // ::menuIn!AskMenu
-    //     mtype:MenuComm menuResponse
-    //     menuOut?menuResponse
-    //     printf("%e\n", menuResponse)
-    // od
+    run MenuService(menuRequestChan, menuResponseChan)
+    run OrderFoodService(orderRequestChan, orderResponseChan)
+    run SchoolCreditCardAccountService(creditRequestChan, creditResponseChan)
+    run DeliveryService(deliveryRequestChan, deliveryResponseChan)
 
-    // // Ordering section
-    // chan orderingIn = [5] of{mtype:OrderingComm}
-    // chan orderingOut = [5] of {mtype:OrderingComm}
-
-    // run OrderFoodService(orderingIn, orderingOut)
-    // mtype:OrderingComm orderResponse
-
-    // do
-    // :: orderingIn!OrderFoodDelivery
-    //     orderingOut?orderResponse
-    //     printf("Reponse de commande: %e \n", orderResponse)
-    // :: orderingIn!OrderFood
-    //     orderingOut?orderResponse
-    //     printf("Reponse de commande: %e \n", orderResponse)
-    // od
-
-    // // Credit section
-    // chan creditIn = [5] of{mtype:CreditComm}
-    // chan creditOut = [5] of {mtype:CreditComm}
-
-    // run SchoolCreditCardAccountService(creditIn, creditOut)
-    // mtype:CreditComm creditResponse
-
-    // do
-    // :: creditIn!PayFood
-    //     creditOut?creditResponse
-    //     printf("Reponse de paiement: %e \n", creditResponse)
-    // :: creditIn!PayFoodDelivery
-    //     creditOut?creditResponse
-    //     printf("Reponse de paiement: %e \n", creditResponse)
-    // od
-
-    // // Delivery section
-    // chan deliveryIn = [5] of {mtype:DeliveryComm}
-    // chan deliveryOut = [5] of {mtype:DeliveryComm}
-
-    // run DeliveryService(deliveryIn, deliveryOut)
-
-    // do
-    // ::deliveryIn!AskDelivery
-    //     mtype:DeliveryComm deliveryResponse
-    //     deliveryOut?deliveryResponse
-    //     printf("Reponse de livraison: %e\n", deliveryResponse)
-    // od
+    do
+    ::  currentClientRequest = ClientRequests[requestCounter%8]
+        requestCounter++
+        printf("New Client request\n")
+        if
+        :: (currentClientRequest == AskMenu && len(menuRequestChan) < 1) -> menuRequestChan!AskMenu; printf("Menu %d\n",len(menuRequestChan))
+        :: (currentClientRequest == OrderFood && len(orderRequestChan) < 1) -> orderRequestChan!OrderFood; printf("Order %d\n",len(orderRequestChan))
+        :: (currentClientRequest == PayFood && len(creditRequestChan) < 1) -> creditRequestChan!PayFood; printf("Credit %d\n",len(creditRequestChan))
+        :: (currentClientRequest == AskDelivery && len(deliveryRequestChan) < 1) -> deliveryRequestChan!AskDelivery; printf("Delivery %d\n",len(deliveryRequestChan))
+        fi
+    ::  menuResponseChan?menuResponse
+        printf("%e\n", menuResponse)
+    ::  creditResponseChan?creditResponse
+        printf("%e\n", creditResponse)
+    ::  orderResponseChan?orderResponse
+        printf("%e\n", orderResponse)
+        printf("Requesting PayFood from OrderFoodService response\n")
+        printf("%d\n", len(creditRequestChan))
+        creditRequestChan!PayFood
+    ::  deliveryResponseChan?deliveryResponse
+        printf("%e \n", deliveryResponse)
+        printf("Requesting OrderFood from DeliveryService response\n")
+        orderRequestChan!OrderFood
+    od
 }
