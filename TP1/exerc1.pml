@@ -1,33 +1,31 @@
-bool p1HasKnife, p0WantsKnife, p1WantsKnife
-int counter = 0;
+bool p0WantsKnife, p1WantsKnife
+int counter = 0
+int turn = 0
 
 proctype p0(){
-printf("p0\n")
 do
-::  p0WantsKnife = true
-    p1HasKnife = true
+::  turn = 1
+    p0WantsKnife = true
     printf("p0 waiting\n")
-    (!p1HasKnife || !p1WantsKnife)
-    printf("p0 put knife down\n")
+    (!p1WantsKnife || turn != 1)
+    printf("p0 used the knife and puts knife down\n")
     p0WantsKnife = false
     counter++
-:: counter > 10 -> break
+:: counter > 5 -> break
 od
 }
 proctype p1(){
-printf("p1\n")
 do
-::  p1WantsKnife = true
-    p1HasKnife = false
+::  turn = 0
+    p1WantsKnife = true
     printf("p1 waiting\n")
-    (p1HasKnife || !p0WantsKnife) 
-    printf("p1 put knife down \n")
+    (!p0WantsKnife || turn != 0)
+    printf("p1 used the knife and puts knife down\n")
     p1WantsKnife = false
     counter++
-:: counter > 10 -> break
+:: counter > 5 -> break
 od
 }
 init {
-run p0()
-run p1()
+run p0(); run p1()
 }
