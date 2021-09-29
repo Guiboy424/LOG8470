@@ -1,0 +1,16 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "Promela (Community)",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": { "VARIANT": "focal" }
+    },
+	"extensions": [
+		"dsvictor94.promela",
+		"mhutchie.git-graph"
+	],
+	"mounts": [
+		//"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind"
+	],
+	"remoteUser": "vscode"
+}
