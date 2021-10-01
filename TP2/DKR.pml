@@ -28,10 +28,10 @@ L1:    printf("I am the leader: %d", id)
 
 init{
     chan nodeChan[6] = [1] of {int}
-    run Node(145, nodeChan[5], nodeChan[0])
-    run Node(76, nodeChan[0], nodeChan[1])
+    run Node(1, nodeChan[5], nodeChan[0])
+    run Node(2, nodeChan[0], nodeChan[1])
     run Node(3, nodeChan[1], nodeChan[2])
-    run Node(90, nodeChan[2], nodeChan[3])
+    run Node(4, nodeChan[2], nodeChan[3])
     run Node(5, nodeChan[3], nodeChan[4])
-    run Node(123, nodeChan[4], nodeChan[5])
+    run Node(6, nodeChan[4], nodeChan[5])
 }

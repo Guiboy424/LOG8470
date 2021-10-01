@@ -52,12 +52,7 @@ MsgRecieved:
         printf("%d - got error \n", id)
         msg = Election
         goto MsgRecieved
-        // for (i in ids) {
-        //     if
-        //     ::  ids[i] > id -> chans[i]!Election
-        //     ::  else -> printf("Slipping node \n")
-        //     fi
-        // }
+
     ::  msg == Election
         printf("%d - got election \n", id)
         bool hasSupValid = false
