@@ -1,7 +1,6 @@
 mtype:ClientRequest = {CheckUsername, CheckPassword, AddFunds, WithdrawFunds, BuyMeal, LogOut}
 mtype:ServerResponse = {InvalidUsername, ValidUsername, InvalidPsw, ValidPsw, AccountBlocked, FundsAdded, FundsWithdrew, NoMoreFunds, BoughtMeal, NotEnoughFunds, LoggedOut, InvalidRequest}
-mtype:ServerRequest = {AccountCredit, SaveAccountCredit}
-mtype:DatabaseResponse = {Ok}
+mtype:ServerRequest = {AccountCredit, SaveAccountCredit, GetUsername, GetPassword}
 proctype database(chan serverToDatabaseChan; chan databasetoServerChan){
     int accountCredit = 0
     int fkYou = 0
@@ -11,12 +10,15 @@ proctype database(chan serverToDatabaseChan; chan databasetoServerChan){
     ::  serverToDatabaseChan?serverRequest,serverCredit
         if
         ::  serverRequest == AccountCredit
-            databasetoServerChan!Ok,accountCredit
+            databasetoServerChan!accountCredit
         ::  serverRequest == SaveAccountCredit
-            int newCredit = 0
             accountCredit = serverCredit
             printf("DB - saved new credit %d\n", accountCredit)
-            databasetoServerChan!Ok,accountCredit
+            databasetoServerChan!accountCredit
+        ::  serverRequest == GetUsername
+            databasetoServerChan!0
+        ::  serverRequest == GetPassword
+            databasetoServerChan!0
         ::  else -> skip
         fi
     ::  fkYou = 0
@@ -30,12 +32,15 @@ proctype server(chan clientToServerChan; chan serverToClientChan; chan serverToD
     int fkYou = 0
     int accountFunds = 0
     int pswAttempts = 0
+    bool returnToStartState = false
     do
-    ::  do
-        ::  printf("waiting for client username\n")
+    ::  do  // state S0: waiting for username
+        ::  printf("s - waiting for client username\n")
             clientToServerChan?clientRequest
             if
             ::  clientRequest == CheckUsername
+                serverToDatabaseChan!GetUsername
+                databasetoServerChan?uselessCreditInfo
                 do
                 ::  serverChoice = InvalidUsername; break
                 ::  serverChoice = ValidUsername; break
@@ -47,72 +52,82 @@ proctype server(chan clientToServerChan; chan serverToClientChan; chan serverToD
             ::  else -> serverToClientChan!InvalidRequest
             fi
         od
-        do
-        ::  printf("waiting for client psw\n")
-                clientToServerChan?clientRequest
+        do  // state S1-S5: waiting for password
+        ::  printf("s - waiting for client psw\n")
+            clientToServerChan?clientRequest
+            if
+            ::  clientRequest == CheckPassword
+                serverToDatabaseChan!GetPassword
+                databasetoServerChan?uselessCreditInfo
+                do
+                ::  serverChoice = InvalidPsw; printf("s - invalid psw\n"); break
+                ::  serverChoice = ValidPsw; printf("s - valid psw\n"); break
+                od
                 if
-                ::  clientRequest == CheckPassword
-                    do
-                    ::  serverChoice = InvalidPsw; break
-                    ::  serverChoice = ValidPsw; break
-                    od
+                ::  serverChoice == ValidPsw
+                    pswAttempts = 0
+                    serverToDatabaseChan!AccountCredit,0
+                    databasetoServerChan?accountFunds
+                    serverToClientChan!ValidPsw
+                    break
+                ::  else
+                    pswAttempts++
                     if
-                    ::  serverChoice == ValidPsw
-                        pswAttempts = 0
-                        serverToDatabaseChan!AccountCredit,0
-                        databasetoServerChan?databaseResponse,accountFunds
-                        serverToClientChan!ValidPsw
+                    ::  pswAttempts >= 3
+                        printf("s - sending account block\n")
+                        serverToClientChan!AccountBlocked // return to start
+                        returnToStartState = true
                         break
                     ::  else
-                        pswAttempts++
-                        if
-                        ::  pswAttempts >= 3
-                            serverToClientChan!AccountBlocked // return to start
-                            break
-                        ::  else
-                            serverToClientChan!InvalidPsw
-                        fi
+                        serverToClientChan!InvalidPsw
                     fi
-                ::  else -> serverToClientChan!InvalidRequest
                 fi
-        od
-        do
-        ::  clientToServerChan??AddFunds
-            accountFunds = accountFunds + 5
-            serverToDatabaseChan!SaveAccountCredit,accountFunds
-            databasetoServerChan?databaseResponse,uselessCreditInfo
-            serverToClientChan!FundsAdded
-        ::  clientToServerChan??WithdrawFunds
-            if
-            ::  accountFunds <= 0
-                serverToClientChan!NoMoreFunds
-            ::  else
-                accountFunds = 0
-                serverToDatabaseChan!SaveAccountCredit,accountFunds
-                databasetoServerChan?databaseResponse,uselessCreditInfo
-                serverToClientChan!FundsWithdrew
+            ::  else -> serverToClientChan!InvalidRequest
             fi
-        ::  clientToServerChan??BuyMeal
-            if
-            ::  accountFunds < 10
-                serverToClientChan!NotEnoughFunds
-            ::  else
-                accountFunds = accountFunds - 10
-                serverToDatabaseChan!SaveAccountCredit,accountFunds
-                databasetoServerChan?databaseResponse,uselessCreditInfo
-                serverToClientChan!BoughtMeal
-            fi
-        ::  clientToServerChan??LogOut
-            serverToClientChan!LoggedOut
-            break
-        :: fkYou = 0
         od
+        printf("s - going to if state\n")
+        if
+        ::  returnToStartState == false
+            do  // state: client requests
+            ::  clientToServerChan??AddFunds
+                accountFunds = accountFunds + 5
+                serverToDatabaseChan!SaveAccountCredit,accountFunds
+                databasetoServerChan?uselessCreditInfo
+                serverToClientChan!FundsAdded
+            ::  clientToServerChan??WithdrawFunds
+                if
+                ::  accountFunds <= 0
+                    serverToClientChan!NoMoreFunds
+                ::  else
+                    accountFunds = 0
+                    serverToDatabaseChan!SaveAccountCredit,accountFunds
+                    databasetoServerChan?uselessCreditInfo
+                    serverToClientChan!FundsWithdrew
+                fi
+            ::  clientToServerChan??BuyMeal
+                if
+                ::  accountFunds < 10
+                    serverToClientChan!NotEnoughFunds
+                ::  else
+                    accountFunds = accountFunds - 10
+                    serverToDatabaseChan!SaveAccountCredit,accountFunds
+                    databasetoServerChan?uselessCreditInfo
+                    serverToClientChan!BoughtMeal
+                fi
+            ::  clientToServerChan??LogOut
+                serverToClientChan!LoggedOut
+                break
+            :: fkYou = 0
+            od
+        ::  else -> printf("s - returning to start date\n"); skip // return to start state
+        fi
     od
 }
 proctype client(chan serverToClientChan; chan clientToServerChan){
     mtype:ServerResponse serverResponse
+    bool returnToStartState = false
     do
-    ::  do
+    ::  do // state: username connexion
         ::  clientToServerChan!CheckUsername
             serverToClientChan?serverResponse
             if
@@ -121,47 +136,51 @@ proctype client(chan serverToClientChan; chan clientToServerChan){
             fi
         od
 
-        do
+        do // state: password connexion
         ::  clientToServerChan!CheckPassword
             serverToClientChan?serverResponse
             if
             ::  serverResponse == ValidPsw -> printf("validPsw\n"); break
-            ::  serverResponse == AccountBlocked -> printf("accountBlocked\n"); skip // return to start to proc
+            ::  serverResponse == AccountBlocked -> printf("accountBlocked\n"); returnToStartState = true; break // return to start to proc
             :: else -> printf("invalidPsw \n"); skip
             fi
         od
 
-        do
-        ::  printf("Adding funds \n")
-            clientToServerChan!AddFunds    // Add funds
-            serverToClientChan?serverResponse
-            printf("Funds added\n")
-        ::  printf("Withdrawing funds \n")
-            clientToServerChan!WithdrawFunds   // WithdrawFunds
-            serverToClientChan?serverResponse
-            if
-            ::  serverResponse == FundsWithdrew -> printf("FundsWithdrew with success\n")
-            ::  else -> printf("ERROR with the withdraw\n")
-            fi
-        ::  printf("buying a meal \n")
-            clientToServerChan!BuyMeal // BuyMeal
-            serverToClientChan?serverResponse
-            if
-            ::  serverResponse == BoughtMeal -> printf("Meal bought with success\n")
-            ::  else -> printf("ERROR with the transaction\n")
-            fi
-        ::  printf("Logging out \n")
-            clientToServerChan!LogOut  // LogOut
-            serverToClientChan?serverResponse
-            printf("Logged out\n")
-            break
-        od
+        if
+        ::  returnToStartState == false
+            do  // state: do things
+            ::  printf("Adding funds \n")
+                clientToServerChan!AddFunds    // Add funds
+                serverToClientChan?serverResponse
+                printf("Funds added\n")
+            ::  printf("Withdrawing funds \n")
+                clientToServerChan!WithdrawFunds   // WithdrawFunds
+                serverToClientChan?serverResponse
+                if
+                ::  serverResponse == FundsWithdrew -> printf("FundsWithdrew with success\n")
+                ::  else -> printf("ERROR with the withdraw\n")
+                fi
+            ::  printf("buying a meal \n")
+                clientToServerChan!BuyMeal // BuyMeal
+                serverToClientChan?serverResponse
+                if
+                ::  serverResponse == BoughtMeal -> printf("Meal bought with success\n")
+                ::  else -> printf("ERROR with the transaction\n")
+                fi
+            ::  printf("Logging out \n")
+                clientToServerChan!LogOut  // LogOut
+                serverToClientChan?serverResponse
+                printf("Logged out\n")
+                break
+            od
+        ::  else -> printf("client - returning to start state\n"); skip // return to start state
+        fi
     od
 }
 init{
     chan clientToServerChan = [0] of {mtype:ClientRequest}
     chan serverToClientChan = [0] of {mtype:ServerResponse}
     chan serverToDatabaseChan = [0] of {mtype:ServerRequest , int}
-    chan databasetoServerChan = [0] of {mtype:DatabaseResponse , int}
+    chan databasetoServerChan = [0] of {int}
     run database(serverToDatabaseChan, databasetoServerChan) ; run client(serverToClientChan, clientToServerChan) ; run server(clientToServerChan, serverToClientChan, serverToDatabaseChan, databasetoServerChan)
 }
