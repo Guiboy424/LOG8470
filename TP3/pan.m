@@ -19,8 +19,8 @@
 		if (trpt->o_pm&1) continue;
 		_m = 3; goto P999;
 
-		 /* CLAIM p4 */
-	case 3: // STATE 1 - _spin_nvr.tmp:4 - [((!(!(clientConnected))&&!(moneyWithdrew)))] (0:0:0 - 1)
+		 /* CLAIM p3 */
+	case 3: // STATE 1 - _spin_nvr.tmp:4 - [(!(clientConnected))] (0:0:0 - 1)
 		
 #if defined(VERI) && !defined(NP)
 #if NCLAIMS>1
@@ -43,58 +43,64 @@
 #endif
 #endif
 		reached[4][1] = 1;
-		if (!(( !( !(((int)now.clientConnected)))&& !(((int)now.moneyWithdrew)))))
+		if (!( !(((int)now.clientConnected))))
 			continue;
 		_m = 3; goto P999; /* 0 */
-	case 4: // STATE 6 - _spin_nvr.tmp:9 - [(!(moneyWithdrew))] (0:0:0 - 1)
+	case 4: // STATE 3 - _spin_nvr.tmp:5 - [((!(!(clientCanOrder))&&!(clientConnected)))] (6:0:0 - 1)
 		
 #if defined(VERI) && !defined(NP)
 #if NCLAIMS>1
-		{	static int reported6 = 0;
-			if (verbose && !reported6)
+		{	static int reported3 = 0;
+			if (verbose && !reported3)
 			{	int nn = (int) ((Pclaim *)pptr(0))->_n;
 				printf("depth %ld: Claim %s (%d), state %d (line %d)\n",
 					depth, procname[spin_c_typ[nn]], nn, (int) ((Pclaim *)pptr(0))->_p, src_claim[ (int) ((Pclaim *)pptr(0))->_p ]);
-				reported6 = 1;
+				reported3 = 1;
 				fflush(stdout);
 		}	}
 #else
-		{	static int reported6 = 0;
-			if (verbose && !reported6)
+		{	static int reported3 = 0;
+			if (verbose && !reported3)
 			{	printf("depth %d: Claim, state %d (line %d)\n",
 					(int) depth, (int) ((Pclaim *)pptr(0))->_p, src_claim[ (int) ((Pclaim *)pptr(0))->_p ]);
-				reported6 = 1;
+				reported3 = 1;
 				fflush(stdout);
 		}	}
 #endif
 #endif
-		reached[4][6] = 1;
-		if (!( !(((int)now.moneyWithdrew))))
+		reached[4][3] = 1;
+		if (!(( !( !(((int)now.clientCanOrder)))&& !(((int)now.clientConnected)))))
 			continue;
-		_m = 3; goto P999; /* 0 */
-	case 5: // STATE 11 - _spin_nvr.tmp:11 - [-end-] (0:0:0 - 1)
+		/* merge: assert(!((!(!(clientCanOrder))&&!(clientConnected))))(0, 4, 6) */
+		reached[4][4] = 1;
+		spin_assert( !(( !( !(((int)now.clientCanOrder)))&& !(((int)now.clientConnected)))), " !(( !( !(clientCanOrder))&& !(clientConnected)))", II, tt, t);
+		/* merge: .(goto)(0, 7, 6) */
+		reached[4][7] = 1;
+		;
+		_m = 3; goto P999; /* 2 */
+	case 5: // STATE 10 - _spin_nvr.tmp:9 - [-end-] (0:0:0 - 1)
 		
 #if defined(VERI) && !defined(NP)
 #if NCLAIMS>1
-		{	static int reported11 = 0;
-			if (verbose && !reported11)
+		{	static int reported10 = 0;
+			if (verbose && !reported10)
 			{	int nn = (int) ((Pclaim *)pptr(0))->_n;
 				printf("depth %ld: Claim %s (%d), state %d (line %d)\n",
 					depth, procname[spin_c_typ[nn]], nn, (int) ((Pclaim *)pptr(0))->_p, src_claim[ (int) ((Pclaim *)pptr(0))->_p ]);
-				reported11 = 1;
+				reported10 = 1;
 				fflush(stdout);
 		}	}
 #else
-		{	static int reported11 = 0;
-			if (verbose && !reported11)
+		{	static int reported10 = 0;
+			if (verbose && !reported10)
 			{	printf("depth %d: Claim, state %d (line %d)\n",
 					(int) depth, (int) ((Pclaim *)pptr(0))->_p, src_claim[ (int) ((Pclaim *)pptr(0))->_p ]);
-				reported11 = 1;
+				reported10 = 1;
 				fflush(stdout);
 		}	}
 #endif
 #endif
-		reached[4][11] = 1;
+		reached[4][10] = 1;
 		if (!delproc(1, II)) continue;
 		_m = 3; goto P999; /* 0 */
 
@@ -137,10 +143,10 @@
 	case 11: // STATE 2 - AFN.pml:147 - [clientCanOrder = 0] (0:0:1 - 1)
 		IfNotBlocked
 		reached[2][2] = 1;
-		(trpt+1)->bup.oval = ((int)clientCanOrder);
-		clientCanOrder = 0;
+		(trpt+1)->bup.oval = ((int)now.clientCanOrder);
+		now.clientCanOrder = 0;
 #ifdef VAR_RANGES
-		logval("clientCanOrder", ((int)clientCanOrder));
+		logval("clientCanOrder", ((int)now.clientCanOrder));
 #endif
 		;
 		_m = 3; goto P999; /* 0 */
@@ -321,10 +327,10 @@
 	case 21: // STATE 22 - AFN.pml:163 - [clientCanOrder = 1] (0:0:1 - 1)
 		IfNotBlocked
 		reached[2][22] = 1;
-		(trpt+1)->bup.oval = ((int)clientCanOrder);
-		clientCanOrder = 1;
+		(trpt+1)->bup.oval = ((int)now.clientCanOrder);
+		now.clientCanOrder = 1;
 #ifdef VAR_RANGES
-		logval("clientCanOrder", ((int)clientCanOrder));
+		logval("clientCanOrder", ((int)now.clientCanOrder));
 #endif
 		;
 		_m = 3; goto P999; /* 0 */
@@ -714,10 +720,10 @@
 	case 45: // STATE 65 - AFN.pml:197 - [clientCanOrder = 0] (0:0:1 - 1)
 		IfNotBlocked
 		reached[2][65] = 1;
-		(trpt+1)->bup.oval = ((int)clientCanOrder);
-		clientCanOrder = 0;
+		(trpt+1)->bup.oval = ((int)now.clientCanOrder);
+		now.clientCanOrder = 0;
 #ifdef VAR_RANGES
-		logval("clientCanOrder", ((int)clientCanOrder));
+		logval("clientCanOrder", ((int)now.clientCanOrder));
 #endif
 		;
 		_m = 3; goto P999; /* 0 */

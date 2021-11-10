@@ -1,12 +1,10 @@
-never p4 {    /* !((! (clientConnected)) || (<> (moneyWithdrew))) */
+never p3 {    /* !((! (clientCanOrder)) U (clientConnected)) */
 accept_init:
 T0_init:
 	do
-	:: (! ((! (clientConnected))) && ! ((moneyWithdrew))) -> goto accept_S3
+	:: (! ((clientConnected))) -> goto T0_init
+	:: atomic { (! ((! (clientCanOrder))) && ! ((clientConnected))) -> assert(!(! ((! (clientCanOrder))) && ! ((clientConnected)))) }
 	od;
-accept_S3:
-T0_S3:
-	do
-	:: (! ((moneyWithdrew))) -> goto accept_S3
-	od;
+accept_all:
+	skip
 }

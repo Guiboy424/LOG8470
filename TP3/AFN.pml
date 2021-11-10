@@ -10,11 +10,11 @@ bool clientConnected = false
 bool canAddFunds = true
 bool moneyWithdrew = false
 mtype:ServerResponse serverChoice
-//ltl p1 { []((!isPasswordValid && pswAttempts > 3) -> <>accountLocked) }
-//ltl p2 { [] (accountCredit >= 0) }
-//ltl p3 { !clientCanOrder until clientConnected }
+ltl p1 { []((!isPasswordValid && pswAttempts > 3) -> <>accountLocked) }
+ltl p2 { [] (accountCredit >= 0) }
+ltl p3 { !clientCanOrder until clientConnected }
 ltl p4 { clientConnected -> <>moneyWithdrew }
-//ltl p5 { [] canAddFunds}
+ltl p5 { [] canAddFunds}
 proctype database(chan serverToDatabaseChan; chan databasetoServerChan){
     int fkYou = 0
     mtype:ServerRequest serverRequest
@@ -41,7 +41,7 @@ proctype server(chan clientToServerChan; chan serverToClientChan; chan serverToD
     mtype:ClientRequest clientRequest
     mtype:DatabaseResponse databaseResponse
     int uselessCreditInfo = 0
-    int fkYou = 0
+    int blankLoop = 0
     int accountFunds = 0
     bool returnToStartState = false
     do
@@ -133,7 +133,7 @@ proctype server(chan clientToServerChan; chan serverToClientChan; chan serverToD
             ::  clientToServerChan??LogOut
                 serverToClientChan!LoggedOut
                 break
-            :: fkYou = 0
+            :: blankLoop = 0 // nothing is happening
             od
         ::  else -> printf("s - returning to start state\n"); skip // return to start state
         fi

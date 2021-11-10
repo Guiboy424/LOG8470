@@ -2,13 +2,15 @@
 	default: Uerror("bad return move");
 	case  0: goto R999; /* nothing to undo */
 
-		 /* CLAIM p4 */
+		 /* CLAIM p3 */
 ;
 		;
 		;
-		;
 		
-	case 5: // STATE 11
+	case 4: // STATE 3
+		goto R999;
+
+	case 5: // STATE 10
 		;
 		p_restor(II);
 		;
@@ -55,7 +57,7 @@
 
 	case 11: // STATE 2
 		;
-		clientCanOrder = trpt->bup.oval;
+		now.clientCanOrder = trpt->bup.oval;
 		;
 		goto R999;
 
@@ -119,7 +121,7 @@
 
 	case 21: // STATE 22
 		;
-		clientCanOrder = trpt->bup.oval;
+		now.clientCanOrder = trpt->bup.oval;
 		;
 		goto R999;
 
@@ -245,7 +247,7 @@
 
 	case 45: // STATE 65
 		;
-		clientCanOrder = trpt->bup.oval;
+		now.clientCanOrder = trpt->bup.oval;
 		;
 		goto R999;
 

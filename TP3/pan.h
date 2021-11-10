@@ -140,10 +140,10 @@ typedef struct S_F_MAP {
 	int upto;
 } S_F_MAP;
 
-#define _nstates4	12	/* p4 */
+#define _nstates4	11	/* p3 */
 #define minseq4	222
-#define maxseq4	232
-#define _endstate4	11
+#define maxseq4	231
+#define _endstate4	10
 
 #define _nstates3	5	/* :init: */
 #define minseq3	218
@@ -193,7 +193,7 @@ extern S_F_MAP src_file0[];
 	#endif
 #endif
 
-typedef struct P4 { /* p4 */
+typedef struct P4 { /* p3 */
 	unsigned _pid : 8;  /* 0..255 */
 	unsigned _t   : 4; /* proctype */
 	unsigned _p   : 8; /* state    */
@@ -471,6 +471,7 @@ typedef struct State {
 	#endif
 #endif
 	unsigned isPasswordValid : 1;
+	unsigned clientCanOrder : 1;
 	unsigned clientConnected : 1;
 	unsigned canAddFunds : 1;
 	unsigned moneyWithdrew : 1;
@@ -499,7 +500,6 @@ typedef struct TRIX_v6 {
 
 #define HAS_TRACK	0
 /* hidden variable: */	uchar accountLocked;
-/* hidden variable: */	uchar clientCanOrder;
 #define FORWARD_MOVES	"pan.m"
 #define BACKWARD_MOVES	"pan.b"
 #define TRANSITIONS	"pan.t"
@@ -508,7 +508,7 @@ typedef struct TRIX_v6 {
 #define _endstate5	2 /* np_ */
 
 #define _start5	0 /* np_ */
-#define _start4	3
+#define _start4	6
 #define _start3	1
 #define _start2	81
 #define _start1	111
@@ -903,7 +903,7 @@ void qsend(int, int, int, int, int);
 #define BAD	8
 #define ALPHA_F	9
 #define NTRANS	130
-unsigned char Is_Recv[233];
+unsigned char Is_Recv[232];
 #if defined(BFS_PAR) || NCORE>1
 	void e_critical(int);
 	void x_critical(int);

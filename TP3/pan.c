@@ -493,17 +493,17 @@ int _;	/* predefined write-only variable */
 #endif
 
 short src_ln4 [] = {
-	  0,   4,   4,   3,   6,   3,   9,   9, 
-	  8,  11,   8,  11,   0, };
+	  0,   4,   4,   5,   5,   5,   3,   7, 
+	  3,   8,   9,   0, };
 S_F_MAP src_file4 [] = {
 	{ "-", 0, 0 },
-	{ "_spin_nvr.tmp", 1, 11 },
-	{ "-", 12, 13 }
+	{ "_spin_nvr.tmp", 1, 10 },
+	{ "-", 11, 12 }
 };
 short *src_claim;
 uchar reached4 [] = {
-	  0,   1,   1,   0,   1,   1,   1,   1, 
-	  0,   1,   1,   0,   0, };
+	  0,   1,   1,   1,   0,   1,   0,   1, 
+	  1,   1,   0,   0, };
 uchar *loopstate4;
 
 short src_ln3 [] = {
@@ -633,7 +633,7 @@ char *procname[] = {
    "server",
    "client",
    ":init:",
-   "p4",
+   "p3",
    ":np_:",
 	0
 };
@@ -645,7 +645,7 @@ int Btypes[] = {
    4,	/* server */
    4,	/* client */
    2,	/* :init: */
-   1,	/* p4 */
+   1,	/* p3 */
    0	/* :np_: */
 };
 
@@ -920,13 +920,13 @@ addproc(int calling_pid, int priority, int n, int par0, int par1, int par2, int 
 		reached5[0] = 1;
 		accpstate[5][1] = 1;
 		break;
-	case 4:	/* p4 */
+	case 4:	/* p3 */
 		((P4 *)pptr(h))->_t = 4;
-		((P4 *)pptr(h))->_p = 3;
+		((P4 *)pptr(h))->_p = 6;
 #ifdef HAS_PRIORITY
 		((P4 *)pptr(h))->_priority = priority; /* was: 1 */
 #endif
-		reached4[3]=1;
+		reached4[6]=1;
 		src_claim = src_ln4;
 		/* params: */
 		/* locals: */
@@ -1209,8 +1209,8 @@ run(void)
 	if ((Maxbody % WS) != 0)
 		Maxbody += WS - (Maxbody % WS);
 
-	accpstate[4][8] = 1;
-	accpstate[4][3] = 1;
+	accpstate[4][9] = 1;
+	accpstate[4][6] = 1;
 	retrans(0, _nstates0, _start0, src_ln0, reached0, loopstate0);
 	retrans(1, _nstates1, _start1, src_ln1, reached1, loopstate1);
 	retrans(2, _nstates2, _start2, src_ln2, reached2, loopstate2);
@@ -12567,7 +12567,7 @@ iniglobals(int calling_pid)
 {
 		now.isPasswordValid = 0;
 		accountLocked = 0;
-		clientCanOrder = 0;
+		now.clientCanOrder = 0;
 		now.clientConnected = 0;
 		now.canAddFunds = 1;
 		now.moneyWithdrew = 0;
@@ -12576,6 +12576,7 @@ iniglobals(int calling_pid)
 		now.accountCredit = 0;
 #ifdef VAR_RANGES
 		logval("isPasswordValid", now.isPasswordValid);
+		logval("clientCanOrder", now.clientCanOrder);
 		logval("clientConnected", now.clientConnected);
 		logval("canAddFunds", now.canAddFunds);
 		logval("moneyWithdrew", now.moneyWithdrew);
@@ -14588,6 +14589,7 @@ c_globals(void)
 	printf("	int    pswAttempts:	%d\n", now.pswAttempts);
 	printf("	int    accountCredit:	%d\n", now.accountCredit);
 	printf("	bit    isPasswordValid:	%d\n", now.isPasswordValid);
+	printf("	bit    clientCanOrder:	%d\n", now.clientCanOrder);
 	printf("	bit    clientConnected:	%d\n", now.clientConnected);
 	printf("	bit    canAddFunds:	%d\n", now.canAddFunds);
 	printf("	bit    moneyWithdrew:	%d\n", now.moneyWithdrew);
@@ -14735,7 +14737,7 @@ c_chandump(int from)
 	printf("\n");
 }
 
-Trans *t_id_lkup[233];
+Trans *t_id_lkup[232];
 
 
 #ifdef BFS_PAR

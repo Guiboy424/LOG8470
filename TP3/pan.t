@@ -24,23 +24,24 @@ settable(void)
 
 	trans = (Trans ***) emalloc(6*sizeof(Trans **));
 
-	/* proctype 4: p4 */
+	/* proctype 4: p3 */
 
-	trans[4] = (Trans **) emalloc(12*sizeof(Trans *));
+	trans[4] = (Trans **) emalloc(11*sizeof(Trans *));
 
-	trans[4][4]	= settr(225,0,3,1,0,".(goto)", 0, 2, 0);
-	T = trans[4][3] = settr(224,0,0,0,0,"DO", 0, 2, 0);
-	    T->nxt	= settr(224,0,1,0,0,"DO", 0, 2, 0);
-	trans[4][1]	= settr(222,0,8,3,0,"((!(!(clientConnected))&&!(moneyWithdrew)))", 1, 2, 0);
-	trans[4][2]	= settr(223,0,8,1,0,"goto accept_S3", 0, 2, 0);
-	trans[4][5]	= settr(226,0,8,1,0,"break", 0, 2, 0);
-	trans[4][9]	= settr(230,0,8,1,0,".(goto)", 0, 2, 0);
-	T = trans[4][8] = settr(229,0,0,0,0,"DO", 0, 2, 0);
-	    T->nxt	= settr(229,0,6,0,0,"DO", 0, 2, 0);
-	trans[4][6]	= settr(227,0,8,4,0,"(!(moneyWithdrew))", 1, 2, 0);
-	trans[4][7]	= settr(228,0,8,1,0,"goto accept_S3", 0, 2, 0);
-	trans[4][10]	= settr(231,0,11,1,0,"break", 0, 2, 0);
-	trans[4][11]	= settr(232,0,0,5,5,"-end-", 0, 3500, 0);
+	trans[4][7]	= settr(228,0,6,1,0,".(goto)", 0, 2, 0);
+	T = trans[4][6] = settr(227,0,0,0,0,"DO", 0, 2, 0);
+	T = T->nxt	= settr(227,0,1,0,0,"DO", 0, 2, 0);
+	    T->nxt	= settr(227,0,5,0,0,"DO", 0, 2, 0);
+	trans[4][1]	= settr(222,0,6,3,0,"(!(clientConnected))", 1, 2, 0);
+	trans[4][2]	= settr(223,0,6,1,0,"goto T0_init", 0, 2, 0);
+	T = trans[ 4][5] = settr(226,2,0,0,0,"ATOMIC", 1, 2, 0);
+	T->nxt	= settr(226,2,3,0,0,"ATOMIC", 1, 2, 0);
+	trans[4][3]	= settr(224,0,6,4,4,"((!(!(clientCanOrder))&&!(clientConnected)))", 1, 2, 0); /* m: 4 -> 6,0 */
+	reached4[4] = 1;
+	trans[4][4]	= settr(0,0,0,0,0,"assert(!((!(!(clientCanOrder))&&!(clientConnected))))",0,0,0);
+	trans[4][8]	= settr(229,0,9,1,0,"break", 0, 2, 0);
+	trans[4][9]	= settr(230,0,10,1,0,"(1)", 0, 2, 0);
+	trans[4][10]	= settr(231,0,0,5,5,"-end-", 0, 3500, 0);
 
 	/* proctype 3: :init: */
 
